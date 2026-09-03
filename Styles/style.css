@@ -31,12 +31,12 @@
 
             @font-face {
                 font-family: Abduction;
-                src: url("/Fonts/abduction2002.ttf");
+                src: url("ICS_Generator/Fonts/abduction2002.ttf");
             }
 
             @font-face {
                 font-family: ms;
-                src: url("/Fonts/VT323-Regular.ttf");
+                src: url("ICS_Generator/Fonts/VT323-Regular.ttf");
             }
 
             /* Colors */
