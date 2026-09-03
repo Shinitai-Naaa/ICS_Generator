@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+    <html lang="en">
+        <head> 
+            <meta charset="UTF-8"> 
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>.ICS file generator from Schedule</title>
+            <link rel="stylesheet" href="https://pyscript.net/releases/2026.7.3/core.css" />
+            <script type="module" src="https://pyscript.net/releases/2026.7.3/core.js"></script>
+            <link rel="stylesheet" type="text/css" href="/Styles/Style1.css"/>
+        </head>    
+        <body>
+            <div id="header"><span class="period">.</span><span class="i">I</span><span class="c">C</span><span class="s">S</span><span> </span><span class="g">G</span><span class="e">e</span><span class="n">n</span><span class="e1">e</span><span class="r">r</span><span class="a">a</span><span class="t">t</span><span class="o">o</span><span class="r1">r</span></div>
+
+            
+            <div class="scheduleInputDiv" id="scheduleInputDiv">
+                <div class="scheduleInputTitleBar">
+                    <div class="scheduleInputHeaderDash" id="scheduleInputHeaderDash">
+                        <div class="scheduleInputHeaderDashText" id="scheduleInputHeaderDashText"></div>
+                    </div>
+                    <div class="scheduleInputHeader" id="scheduleInputHeader">Paste in your Banner style schedule</div>
+                </div>
+                <div class="scheduleTextBoxDiv" id="scheduleTextBoxDiv">
+                    <textarea id="scheduleInput" type="text" placeholder="e.g. Calculus II | Electrical & Computer Engineer
+Term begin: Jan 01, 1667
+Term end: Feb 01, 1667
+Instructor: Jane Doe
+CRN: 00000
+Pending
+Units: 0 | Level: None | Campus: None | Schedule Type: Lecture | Delivery Mode: Face-to-face | Grade Mode: Standard Grades
+Class meeting dates:Jan 01, 1667 -- Feb 01, 1667
+
+    S
+    M
+    T
+    W
+    T
+    F
+    S
+
+00:00 AM - 00:00 PM 
+Location: Main
+Building: Timbuktu" required ></textarea>
+                </div>
+                <div id="scheduleInputResizerTopRight"></div>
+                <div id="scheduleInputResizerBottomRight"></div>
+                <div id="scheduleInputResizerBottomLeft"></div>
+                <div id="scheduleInputResizerTopLeft"></div>
+            </div>
+            <div class="tzInputDiv" id="tzInputDiv">
+                <div class="tzInputTitleBar">
+                    <div class="tzInputHeaderDash" id="tzInputHeaderDash">
+                        <div class="tzInputHeaderDashText" id="tzInputHeaderDashText"></div>
+                    </div>
+                    <div class="tzInputHeader" id="tzInputHeader">Timezone (IANA name, optional)</div>
+                </div>
+                <div class="tzTextBoxDiv" id="tzTextBoxDiv">
+                    <textarea id="tzInput" type="text" placeholder="e.g. America/Vancouver"></textarea>
+                </div>
+                <div id="tzInputResizerTopRight"></div>
+                <div id="tzInputResizerBottomRight"></div>
+                <div id="tzInputResizerBottomLeft"></div>
+                <div id="tzInputResizerTopLeft"></div>
+            </div>
+            <div class="reminderInputDiv" id="reminderInputDiv">
+                <div class="reminderInputTitleBar">
+                    <div class="reminderInputHeaderDash" id="reminderInputHeaderDash">
+                        <div class="reminderInputHeaderDashText" id="reminderInputHeaderDashText"></div>
+                    </div>
+                    <div class="reminderInputHeader" id="reminderInputHeader">Reminder before class</div>
+                </div>
+                <div class="reminderTextBoxDiv" id="reminderTextBoxDiv">
+                    <textarea id="reminderInput" type="text" placeholder="15M"></textarea>
+                </div>
+                <div id="reminderInputResizerTopRight"></div>
+                <div id="reminderInputResizerBottomRight"></div>
+                <div id="reminderInputResizerBottomLeft"></div>
+                <div id="reminderInputResizerTopLeft"></div>
+            </div>
+            <div class="generateInputDiv" id="generateInputDiv">
+                <div class="generateInputTitleBar">
+                    <div class="generateInputHeaderDash" id="generateInputHeaderDash">
+                        <div class="generateInputHeaderDashText" id="generateInputHeaderDashText"></div>
+                    </div>
+                    <div class="generateInputHeader" id="generateInputHeader">Generate</div>
+                </div>
+                <div class="generateButtonDiv" id="generateButtonDiv">
+                    <button id="generateButton">Generate events</button>
+                </div>
+                <div id="generateInputResizerTopRight"></div>
+                <div id="generateInputResizerBottomRight"></div>
+                <div id="generateInputResizerBottomLeft"></div>
+                <div id="generateInputResizerTopLeft"></div>
+            </div>
+            <div class="downloadInputDiv" id="downloadInputDiv">
+                <div class="downloadInputTitleBar">
+                    <div class="downloadInputHeaderDash" id="downloadInputHeaderDash">
+                        <div class="downloadInputHeaderDashText" id="downloadInputHeaderDashText"></div>
+                    </div>
+                    <div class="downloadInputHeader" id="downloadInputHeader">Download</div>
+                </div>
+                <div class="downloadButtonDiv" id="downloadButtonDiv">
+                    <button id="downloadButton" disabled>Download events</button>
+                </div>
+                <div id="downloadInputResizerTopRight"></div>
+                <div id="downloadInputResizerBottomRight"></div>
+                <div id="downloadInputResizerBottomLeft"></div>
+                <div id="downloadInputResizerTopLeft"></div>
+            </div>
+            <div class="resultsInputDiv" id="resultsInputDiv">
+                <div class="resultsInputTitleBar">
+                    <div class="resultsInputHeaderDash" id="resultsInputHeaderDash">
+                        <div class="resultsInputHeaderDashText" id="resultsInputHeaderDashText"></div>
+                    </div>
+                    <div class="resultsInputHeader" id="resultsInputHeader">Results</div>
+                </div>
+                <div class="resultsTextBoxDiv" id="resultsTextBoxDiv">
+                    <textarea id="resultsInput" type="text" placeholder="Results will be shown here:" disabled></textarea>
+                </div>
+                <div id="resultsInputResizerTopRight"></div>
+                <div id="resultsInputResizerBottomRight"></div>
+                <div id="resultsInputResizerBottomLeft"></div>
+                <div id="resultsInputResizerTopLeft"></div>
+            </div>
+
+                
+            <script type="py" config='{"packages":["tzdata"]}'>
+                from __future__ import annotations
+
+                import argparse
+                import re
+                import sys
+                import uuid
+                from dataclasses import dataclass
+                from datetime import datetime, timedelta, date, time, timezone
+                from typing import Optional
+
+                from pyscript import document, when
+                import js
+
+                try:
+                    from zoneinfo import ZoneInfo
+                except ImportError:  # pragma: no cover - py<3.9 fallback
+                    ZoneInfo = None
+
+
+                # --------------------------------------------------------------------------
+
+                @dataclass
+                class Event:
+                    summary: str
+                    start: datetime
+                    end: datetime
+                    location: str = ""
+                    description: str = ""
+                    rrule: str = ""
+
+
+                MONTH_NAMES = {
+                    "jan": 1, "january": 1, "feb": 2, "february": 2, "mar": 3, "march": 3,
+                    "apr": 4, "april": 4, "may": 5, "jun": 6, "june": 6, "jul": 7, "july": 7,
+                    "aug": 8, "august": 8, "sep": 9, "sept": 9, "september": 9, "oct": 10,
+                    "october": 10, "nov": 11, "november": 11, "dec": 12, "december": 12,
+                }
+                _MONTH_ALT = (
+                    r"(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?"
+                    r"|Jul(?:y)?|Aug(?:ust)?|Sep(?:t)?(?:ember)?|Oct(?:ober)?|Nov(?:ember)?"
+                    r"|Dec(?:ember)?)"
+                )
+
+                _MONTH_ALT_CAP = "(" + _MONTH_ALT[3:]
+
+                WEEKDAY_NAMES = {
+                    "monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3,
+                    "friday": 4, "saturday": 5, "sunday": 6,
+                }
+                _WEEKDAY_ALT = r"(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)"
+
+                DATE_PATTERNS = [
+                    ("iso", re.compile(r"\b(\d{4})-(\d{1,2})-(\d{1,2})\b")),
+                    ("month_day_year", re.compile(
+                        _MONTH_ALT_CAP + r"\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{4})?\b", re.IGNORECASE)),
+                    ("day_month_year", re.compile(
+                        r"\b(\d{1,2})(?:st|nd|rd|th)?\s+" + _MONTH_ALT_CAP + r"\.?,?\s*(\d{4})?\b", re.IGNORECASE)),
+                    ("numeric", re.compile(r"\b(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})\b")),
+                    ("weekday", re.compile(r"\b" + _WEEKDAY_ALT + r"\b", re.IGNORECASE)),
+                ]
+
+
+                def _month_index(name: str) -> int:
+                    key = name.strip(".").lower()
+                    if key not in MONTH_NAMES:
+                        for full, num in MONTH_NAMES.items():
+                            if full.startswith(key[:3]):
+                                return num
+                        raise ValueError(f"Unknown month: {name}")
+                    return MONTH_NAMES[key]
+
+
+                def _resolve_year(month: int, day: int, year: Optional[int], default_date: date) -> date:
+                    """Fill in a missing year, preferring the nearest occurrence on/after
+                    default_date (so 'Dec 24' typed in August resolves to this December,
+                    not last December)."""
+                    if year is not None:
+                        return date(year, month, day)
+                    candidate = date(default_date.year, month, day)
+                    if candidate < default_date:
+                        candidate = date(default_date.year + 1, month, day)
+                    return candidate
+
+
+                def _resolve_weekday(name: str, default_date: date) -> date:
+                    target = WEEKDAY_NAMES[name.lower()]
+                    delta = (target - default_date.weekday()) % 7
+                    return default_date + timedelta(days=delta)
+
+
+                def _date_from_match(kind: str, m: "re.Match", default_date: date) -> date:
+                    if kind == "iso":
+                        y, mo, d = int(m.group(1)), int(m.group(2)), int(m.group(3))
+                        return date(y, mo, d)
+                    if kind == "month_day_year":
+                        mo = _month_index(m.group(1))
+                        d = int(m.group(2))
+                        y = int(m.group(3)) if m.group(3) else None
+                        return _resolve_year(mo, d, y, default_date)
+                    if kind == "day_month_year":
+                        d = int(m.group(1))
+                        mo = _month_index(m.group(2))
+                        y = int(m.group(3)) if m.group(3) else None
+                        return _resolve_year(mo, d, y, default_date)
+                    if kind == "numeric":
+                        a, b, y = int(m.group(1)), int(m.group(2)), int(m.group(3))
+                        if y < 100:
+                            y += 2000
+                        return date(y, a, b)
+                    if kind == "weekday":
+                        return _resolve_weekday(m.group(0), default_date)
+                    raise ValueError(kind)
+
+
+                def find_date_in_text(text: str, default_date: date) -> Optional[tuple[date, tuple[int, int]]]:
+                    """Find the earliest-starting date-like substring in text. Returns
+                    (date, (start, end)) or None."""
+                    best = None
+                    for kind, pattern in DATE_PATTERNS:
+                        m = pattern.search(text)
+                        if m and (best is None or m.start() < best[0].start()):
+                            best = (m, kind)
+                    if best is None:
+                        return None
+                    m, kind = best
+                    try:
+                        d = _date_from_match(kind, m, default_date)
+                    except ValueError:
+                        return None
+                    return d, (m.start(), m.end())
+
+
+                def parse_date_string(s: str, default_date: Optional[date] = None) -> date:
+                    """Parse an isolated date string like 'Sept 3 2026', '2026-08-25',
+                    '8/25/2026', or a bare weekday name."""
+                    default_date = default_date or date.today()
+                    found = find_date_in_text(s, default_date)
+                    if not found:
+                        raise ValueError(f"Could not parse date: {s!r}")
+                    return found[0]
+
+
+                def parse_clock_time_string(s: str) -> time:
+                    """Parse an isolated time string like '2:30pm', '9am', or '14:30'."""
+                    s = s.strip()
+                    m = re.match(r"^(\d{1,2}):(\d{2})\s*([AaPp][Mm])$", s)
+                    if m:
+                        h, mi, ap = int(m.group(1)), int(m.group(2)), m.group(3).lower()
+                    else:
+                        m = re.match(r"^(\d{1,2})\s*([AaPp][Mm])$", s)
+                        if m:
+                            h, mi, ap = int(m.group(1)), 0, m.group(2).lower()
+                        else:
+                            m = re.match(r"^([01]?\d|2[0-3]):([0-5]\d)$", s)
+                            if m:
+                                return time(int(m.group(1)), int(m.group(2)))
+                            raise ValueError(f"Could not parse time: {s!r}")
+                    if ap == "pm" and h != 12:
+                        h += 12
+                    if ap == "am" and h == 12:
+                        h = 0
+                    return time(h, mi)
+
+
+                WEEKDAY_CODES = {
+                    "monday": "MO", "tuesday": "TU", "wednesday": "WE", "thursday": "TH",
+                    "friday": "FR", "saturday": "SA", "sunday": "SU",
+                }
+                WEEKDAY_PY = {
+                    "monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3,
+                    "friday": 4, "saturday": 5, "sunday": 6,
+                }
+
+                COURSE_HEADER_RE = re.compile(
+                    r"^(?!Term begin|Term end|Instructor|CRN|Message|Class meeting dates"
+                    r"|Location|Building|Registered|Waitlist)"
+                    r"([^|\n]+)\|([^|\n]+)$",
+                    re.MULTILINE,
+                )
+                COURSE_FIELD_RES = {
+                    "term_begin": re.compile(r"Term begin:\s*(.+)", re.IGNORECASE),
+                    "term_end": re.compile(r"Term end:\s*(.+)", re.IGNORECASE),
+                    "instructor": re.compile(r"Instructor:\s*(.+)", re.IGNORECASE),
+                    "crn": re.compile(r"CRN:\s*(\S+)", re.IGNORECASE),
+                }
+                WEEKDAY_LINE_RE = re.compile(
+                    r"^\s*("
+                    r"(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)"
+                    r"(?:\s*,\s*(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday))*"
+                    r")\s*$",
+                    re.IGNORECASE | re.MULTILINE,
+                )
+                COURSE_TIME_RANGE_RE = re.compile(
+                    r"(\d{1,2}:\d{2}\s*[AP]M)\s*-\s*(\d{1,2}:\d{2}\s*[AP]M)", re.IGNORECASE
+                )
+
+
+                def looks_like_course_schedule(text: str) -> bool:
+                    return "CRN:" in text and "Class meeting dates:" in text
+
+
+                def _clean_block_text(chunk: str) -> str:
+                    """Tidy up a raw pasted block for use as the description: trim
+                    trailing whitespace per line and collapse runs of blank lines (the
+                    day-toggle grid tends to leave several in a row) down to one."""
+                    lines = [ln.rstrip() for ln in chunk.strip("\n").splitlines()]
+                    cleaned, prev_blank = [], False
+                    for ln in lines:
+                        blank = not ln.strip()
+                        if blank and prev_blank:
+                            continue
+                        cleaned.append(ln)
+                        prev_blank = blank
+                    return "\n".join(cleaned).strip()
+
+
+                def _first_meeting_date(range_start: date, weekday_pys: list[int]) -> Optional[date]:
+                    """Earliest date on/after range_start that falls on one of the given
+                    weekdays (Monday=0 ... Sunday=6)."""
+                    for offset in range(7):
+                        d = range_start + timedelta(days=offset)
+                        if d.weekday() in weekday_pys:
+                            return d
+                    return None
+
+
+                MEETING_DATES_RE = re.compile(
+                    r"Class meeting dates:\s*(.+?)\s*--\s*(.+)", re.IGNORECASE
+                )
+                LOCATION_LINE_RE = re.compile(r"^Location:\s*(.+)$", re.IGNORECASE | re.MULTILINE)
+                BUILDING_LINE_RE = re.compile(r"^Building:\s*(.+)$", re.IGNORECASE | re.MULTILINE)
+
+
+                def parse_course_blocks(text: str, default_tz) -> tuple[list[Event], list[str]]:
+                    headers = list(COURSE_HEADER_RE.finditer(text))
+                    if not headers:
+                        return [], []
+
+                    events, skipped = [], []
+                    for i, h in enumerate(headers):
+                        chunk_start = h.start()
+                        chunk_end = headers[i + 1].start() if i + 1 < len(headers) else len(text)
+                        chunk = text[chunk_start:chunk_end]
+
+                        course_name = h.group(1).strip()
+                        course_details = h.group(2).strip()
+                        base_title = course_name if course_name == course_details else f"{course_name} ({course_details})"
+
+                        fields = {}
+                        for key, rx in COURSE_FIELD_RES.items():
+                            m = rx.search(chunk)
+                            if m:
+                                fields[key] = m.group(1).strip()
+
+                        meeting_matches = list(MEETING_DATES_RE.finditer(chunk))
+                        if meeting_matches:
+                            sub_chunks = []
+                            for j, mm in enumerate(meeting_matches):
+                                sub_start = mm.start()
+                                sub_end = meeting_matches[j + 1].start() if j + 1 < len(meeting_matches) else len(chunk)
+                                sub_chunks.append((mm.group(1).strip(), mm.group(2).strip(), chunk[sub_start:sub_end]))
+                        elif "term_begin" in fields and "term_end" in fields:
+                            sub_chunks = [(fields["term_begin"], fields["term_end"], chunk)]
+                        else:
+                            skipped.append(chunk.strip()[:100])
+                            continue
+
+                        course_events = []
+                        for j, (start_str, end_str, sub_chunk) in enumerate(sub_chunks):
+                            try:
+                                range_start = parse_date_string(start_str)
+                                range_end = parse_date_string(end_str)
+                            except ValueError:
+                                skipped.append(sub_chunk.strip()[:100])
+                                continue
+
+                            weekday_names = []
+                            for m in WEEKDAY_LINE_RE.finditer(sub_chunk):
+                                for part in m.group(1).split(","):
+                                    day = part.strip().lower()
+                                    if day and day not in weekday_names:
+                                        weekday_names.append(day)
+                            time_m = COURSE_TIME_RANGE_RE.search(sub_chunk)
+                            if not weekday_names or not time_m:
+                                skipped.append(sub_chunk.strip()[:100])
+                                continue
+
+                            weekday_pys = [WEEKDAY_PY[w] for w in weekday_names]
+                            first_date = _first_meeting_date(range_start, weekday_pys)
+                            if first_date is None:
+                                skipped.append(sub_chunk.strip()[:100])
+                                continue
+
+                            try:
+                                start_time = parse_clock_time_string(time_m.group(1))
+                                end_time = parse_clock_time_string(time_m.group(2))
+                            except ValueError:
+                                skipped.append(sub_chunk.strip()[:100])
+                                continue
+
+                            start_dt = datetime.combine(first_date, start_time)
+                            end_dt = datetime.combine(first_date, end_time)
+                            if default_tz:
+                                start_dt = start_dt.replace(tzinfo=default_tz)
+                                end_dt = end_dt.replace(tzinfo=default_tz)
+
+                            byday = ",".join(WEEKDAY_CODES[w] for w in weekday_names)
+                            until = datetime.combine(range_end, datetime.min.time()) + timedelta(
+                                hours=23, minutes=59, seconds=59
+                            )
+                            rrule = f"FREQ=WEEKLY;BYDAY={byday};UNTIL={until.strftime('%Y%m%dT%H%M%S')}Z"
+                            loc_m = LOCATION_LINE_RE.search(sub_chunk)
+                            bld_m = BUILDING_LINE_RE.search(sub_chunk)
+                            location_parts = [p.strip() for p in (loc_m and loc_m.group(1), bld_m and bld_m.group(1)) if p]
+                            location = " — ".join(location_parts)
+
+                            course_events.append(Event(
+                                summary=base_title,
+                                start=start_dt,
+                                end=end_dt,
+                                location=location,
+                                description="",
+                                rrule=rrule,
+                            ))
+
+
+                        multi = len(course_events) > 1
+
+                        description = _clean_block_text(chunk)
+                        for j, ev in enumerate(course_events):
+                            if multi:
+                                ev.summary = f"{base_title} (Session {j + 1})"
+                            ev.description = description
+                            events.append(ev)
+
+                    return events, skipped
+
+                def parse_reminder_offset(time_str:str) -> str:
+                    time_str = time_str.strip().upper()
+                    if time_str.isdigit():
+                        return f"-PT{time_str}M"
+                    return f"-PT{time_str}"
+
+
+                def _fold(line: str) -> str:
+                    """iCalendar lines should be folded at 75 octets; keep it simple and
+                    safe for typical ASCII/UTF-8 text."""
+                    if len(line) <= 75:
+                        return line
+                    out = [line[:75]]
+                    rest = line[75:]
+                    while rest:
+                        out.append(" " + rest[:74])
+                        rest = rest[74:]
+                    return "\r\n".join(out)
+
+
+                def _escape(text: str) -> str:
+                    return (
+                        text.replace("\\", "\\\\")
+                        .replace(";", "\\;")
+                        .replace(",", "\\,")
+                        .replace("\n", "\\n")
+                    )
+
+
+                def _fmt_dt(dt: datetime) -> str:
+                    return dt.strftime("%Y%m%dT%H%M%S")
+
+
+                def event_to_ics(ev: Event, tz_name: Optional[str], reminder_offset: str) -> str:
+                    tzid = f";TZID={tz_name}" if tz_name else ""
+                    trigger_val = parse_reminder_offset(reminder_offset)
+                    lines = [
+                        "BEGIN:VEVENT",
+                        f"UID:{uuid.uuid4()}@text-to-ics",
+                        f"DTSTAMP:{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}",
+                        f"DTSTART{tzid}:{_fmt_dt(ev.start)}",
+                        f"DTEND{tzid}:{_fmt_dt(ev.end)}",
+                        f"SUMMARY:{_escape(ev.summary)}",
+                    ]
+                    if ev.rrule:
+                        lines.append(f"RRULE:{ev.rrule}")
+                    if ev.location:
+                        lines.append(f"LOCATION:{_escape(ev.location)}")
+                    if ev.description:
+                        lines.append(f"DESCRIPTION:{_escape(ev.description)}")
+                    lines.extend([
+                        "BEGIN:VALARM",
+                        f"TRIGGER:{trigger_val}",
+                        "ACTION:DISPLAY",
+                        f"DESCRIPTION:Reminder: {_escape(ev.summary)}",
+                        "END:VALARM"
+                    ])
+                    
+                    lines.append("END:VEVENT")
+                    return "\r\n".join(_fold(l) for l in lines)
+
+                def build_ics(events: list[Event], tz_name: Optional[str], reminder_offset: str) -> str:
+                    header = [
+                        "BEGIN:VCALENDAR",
+                        "VERSION:2.0",
+                        "PRODID:-//text-to-ics//EN",
+                        "CALSCALE:GREGORIAN",
+                    ]
+                    body = [event_to_ics(ev, tz_name, reminder_offset) for ev in events]
+                    footer = ["END:VCALENDAR"]
+                    return "\r\n".join(header + body + footer) + "\r\n"
+                    
+
+                # ________________________________________
+                # For it to work in the website
+                _last_ics_text = None
+
+
+                def render_results(events, skipped):
+                    results_el = document.getElementById("resultsInput")
+
+                    lines = []
+                    for ev in events:
+                        when = (ev.start.strftime("%b %d, %Y") + " · " + ev.start.strftime("%I:%M %p").lstrip("0")
+                                + "–" + ev.end.strftime("%I:%M %p").lstrip("0"))
+                        lines.append(ev.summary)
+                        lines.append(f"  {when}")
+                        lines.append(f"  {ev.rrule}")
+                        if ev.location:
+                            lines.append(f"  \U0001F4CD {ev.location}")
+                        lines.append("")
+
+                    if skipped:
+                        lines.append(f"Couldn't fully parse {len(skipped)} course block(s):")
+                        for s in skipped:
+                            lines.append(f"  - {s[:100]}")
+
+                    results_el.value = "\n".join(lines)
+
+
+                @when("click", "#generateButton")
+                def on_generate(event=None):
+                    global _last_ics_text
+
+                    results_el = document.getElementById("resultsInput")
+                    download_btn = document.getElementById("downloadButton")
+                    raw = document.getElementById("scheduleInput").value
+                    tz_name = document.getElementById("tzInput").value.strip()
+                    reminder = document.getElementById("reminderInput").value.strip() or "15M"
+
+                    if not looks_like_course_schedule(raw):
+                        results_el.value = "That doesn't look like a course-schedule paste (no 'CRN:' / 'Class meeting dates:' found)."
+                        download_btn.disabled = True
+                        _last_ics_text = None
+                        return
+
+                    default_tz = None
+                    tz_warning = ""
+                    if tz_name and ZoneInfo is not None:
+                        try:
+                            default_tz = ZoneInfo(tz_name)
+                        except Exception:
+                            tz_warning = f"Unrecognized timezone {tz_name!r} - used floating local time instead.\n\n"
+                            tz_name = ""
+
+                    events, skipped = parse_course_blocks(raw, default_tz)
+
+                    if not events:
+                        results_el.value = tz_warning + "No course events could be found in that text."
+                        download_btn.disabled = True
+                        _last_ics_text = None
+                        return
+
+                    _last_ics_text = build_ics(events, tz_name or None, reminder)
+                    render_results(events, skipped)
+                    if tz_warning:
+                        results_el.value = tz_warning + results_el.value
+                    download_btn.disabled = False
+
+                @when("click", "#downloadButton")
+                def on_download(event=None):
+                    if _last_ics_text:
+                        js.downloadFile("events.ics", _last_ics_text)
+
+
+                document.getElementById("generateButton").addEventListener("click", on_generate)
+                document.getElementById("downloadButton").addEventListener("click", on_download)
+
+                
+                    # ... unchanged body ...
+
+                
+            </script>
+            <script src="/Scripts/Random_Color_Title_Blink.js"></script>
+            <script src="/Scripts/Windows.js"></script>
+        </body> 
+    </html>
